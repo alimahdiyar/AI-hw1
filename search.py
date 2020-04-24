@@ -67,9 +67,9 @@ def tinyMazeSearch(problem):
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
     sequence of moves will be incorrect, so only use this for tinyMaze.
     """
-    from game import Directions
-    s = Directions.SOUTH
-    w = Directions.WEST
+    from game import actions
+    s = actions.SOUTH
+    w = actions.WEST
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
@@ -87,6 +87,7 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
+
     from collections import deque
     nodes = deque()
     seen = []
@@ -102,14 +103,14 @@ def depthFirstSearch(problem):
         if problem.isGoalState(node['state']):
             path = []
             while(node['parent']):
-                path.append(node['direction'])
+                path.append(node['action'])
                 node = node['parent']
             return path[::-1]
         for successor in problem.getSuccessors(node['state']):
             nodes.append({
                 'state': successor[0],
                 'parent': node,
-                'direction': successor[1]
+                'action': successor[1]
             })
         
     return None
@@ -117,12 +118,62 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    from collections import deque
+    nodes = deque()
+    seen = []
+    nodes.append({
+        'state': problem.getStartState(),
+        'parent': None
+    })
+    while len(nodes):
+        node = nodes.popleft()
+        if(node['state'] in seen):
+            continue
+        seen.append(node['state'])
+        if problem.isGoalState(node['state']):
+            path = []
+            while(node['parent']):
+                path.append(node['action'])
+                node = node['parent']
+            return path[::-1]
+        for successor in problem.getSuccessors(node['state']):
+            nodes.append({
+                'state': successor[0],
+                'parent': node,
+                'action': successor[1]
+            })
+        
+    return None
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    import heapq
+    seen = {}
+    q = [(0, {
+        'state': problem.getStartState(),
+        'parent': None
+    })]
+    while len(q):
+        cost, node = heapq.heappop(q)
+        if(seen.has_key(node['state']) and (seen[node['state']] < cost)):
+            continue
+        seen[node['state']] = cost
+        if problem.isGoalState(node['state']):
+            path = []
+            while(node['parent']):
+                path.append(node['action'])
+                node = node['parent']
+            return path[::-1]
+        for successor in problem.getSuccessors(node['state']):
+            heapq.heappush(q,(
+                cost+successor[2],{
+                    'state': successor[0],
+                    'parent': node,
+                    'action': successor[1]
+                }
+            ))
 
 def nullHeuristic(state, problem=None):
     """
@@ -134,7 +185,37 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    import heapq
+    seen = {}
+    start_state = problem.getStartState()
+    q = [(heuristic(start_state, problem), {
+        'state': start_state,
+        'cost': 0,
+        'parent': None
+    })]
+    while len(q):
+        _, node = heapq.heappop(q)
+        state = node['state']
+        cost = node['cost']
+        if(seen.has_key(state)):
+            continue
+        seen[state] = cost
+        if problem.isGoalState(state):
+            path = []
+            while(node['parent']):
+                path.append(node['action'])
+                node = node['parent']
+            return path[::-1]
+        for successor in problem.getSuccessors(state):
+            heapq.heappush(q,(
+                (cost+successor[2] + heuristic(successor[0], problem)),{
+                    'cost': cost+successor[2],
+                    'state': successor[0],
+                    'parent': node,
+                    'action': successor[1]
+                }
+            ))
 
 
 # Abbreviations
