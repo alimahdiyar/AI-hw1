@@ -87,7 +87,32 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from collections import deque
+    nodes = deque()
+    seen = []
+    nodes.append({
+        'state': problem.getStartState(),
+        'parent': None
+    })
+    while len(nodes):
+        node = nodes.pop()
+        if(node['state'] in seen):
+            continue
+        seen.append(node['state'])
+        if problem.isGoalState(node['state']):
+            path = []
+            while(node['parent']):
+                path.append(node['direction'])
+                node = node['parent']
+            return path[::-1]
+        for successor in problem.getSuccessors(node['state']):
+            nodes.append({
+                'state': successor[0],
+                'parent': node,
+                'direction': successor[1]
+            })
+        
+    return None
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
